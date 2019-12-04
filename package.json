@@ -16,8 +16,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "xbookmarks.helloWorld",
-        "title": "Hello World"
+        "command": "xbookmarks.toggle",
+        "title": "xBookmarks: Toggle"
       }
     ]
   },
