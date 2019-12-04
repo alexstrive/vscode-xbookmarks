@@ -6,7 +6,7 @@ export const activate = (context: vscode.ExtensionContext) => {
   const bookmarks = [];
 
   vscode.commands.registerCommand('xbookmarks.helloWorld', () => {
-    vscode.window.showWarningMessage('shit');
+    vscode.window.showWarningMessage('Test');
   });
 };
 
