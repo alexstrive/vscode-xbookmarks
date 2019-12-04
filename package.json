@@ -16,7 +16,7 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.helloWorld",
+        "command": "xbookmarks.helloWorld",
         "title": "Hello World"
       }
     ]
