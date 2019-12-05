@@ -19,6 +19,12 @@
         "command": "xbookmarks.toggle",
         "title": "xBookmarks: Toggle"
       }
+    ],
+    "keybindings": [
+      {
+        "command": "xbookmarks.toggle",
+        "key": "Alt+K"
+      }
     ]
   },
   "scripts": {
