@@ -4,7 +4,7 @@ import mkdirp = require('mkdirp');
 import * as vscode from 'vscode';
 
 export const activate = (context: vscode.ExtensionContext) => {
-  const bookmarkedLines: any = context.workspaceState.get('bookmarks') || {};
+  const bookmarks: any = context.workspaceState.get('bookmarks') || {};
   let activeFile: string = '';
 
   const decorationOptions: vscode.DecorationRenderOptions = {
@@ -26,6 +26,16 @@ export const activate = (context: vscode.ExtensionContext) => {
     updateDecorations();
   });
 
+  const findIndexOfBookmarkByLine = (targetLine: number) =>
+    bookmarks[activeFile].findIndex(
+      (bookmark: any) => bookmark.line === targetLine
+    );
+
+  const findIndexOfBookmarkByValue = (targetValue: string) =>
+    bookmarks[activeFile].findIndex(
+      (bookmark: any) => bookmark.value === targetValue
+    );
+
   const updateDecorations = () => {
     if (!vscode.window.activeTextEditor) {
       return;
@@ -37,8 +47,8 @@ export const activate = (context: vscode.ExtensionContext) => {
 
     const books: vscode.Range[] = [];
 
-    for (let line of bookmarkedLines[activeFile]) {
-      books.push(new vscode.Range(line, 0, line, 0));
+    for (let position of bookmarks[activeFile]) {
+      books.push(new vscode.Range(position.line, 0, position.line, 0));
     }
 
     vscode.window.activeTextEditor.setDecorations(
@@ -47,7 +57,7 @@ export const activate = (context: vscode.ExtensionContext) => {
     );
   };
 
-  const toggle = () => {
+  const toggle = (assignedValue: string | undefined) => {
     if (!vscode.window.activeTextEditor) {
       vscode.window.showInformationMessage('Откройте файл для данной операции');
       return;
@@ -60,28 +70,80 @@ export const activate = (context: vscode.ExtensionContext) => {
     const toggledPosition: vscode.Position =
       vscode.window.activeTextEditor.selection.active;
 
-    if (!bookmarkedLines[activeFile]) {
-      bookmarkedLines[activeFile] = [];
+    if (!bookmarks[activeFile]) {
+      bookmarks[activeFile] = [];
     }
 
-    const lineIndexInStore = bookmarkedLines[activeFile].indexOf(
-      toggledPosition.line
-    );
+    const lineIndexInStore = findIndexOfBookmarkByLine(toggledPosition.line);
 
-    // If already exists
+    // If was found
     if (lineIndexInStore !== -1) {
       // Delete from the store
-      bookmarkedLines[activeFile].splice(lineIndexInStore, 1);
+      bookmarks[activeFile].splice(lineIndexInStore, 1);
     } else {
       // Add to the store
-      bookmarkedLines[activeFile].push(toggledPosition.line);
+      bookmarks[activeFile].push({
+        line: toggledPosition.line,
+        column: toggledPosition.character,
+        value: assignedValue || (toggledPosition.line + 1).toString()
+      });
     }
 
     updateDecorations();
-    context.workspaceState.update('bookmarks', bookmarkedLines);
+    context.workspaceState.update('bookmarks', bookmarks);
   };
 
   vscode.commands.registerCommand('xbookmarks.toggle', toggle);
+
+  const toggleAndAssignValue = () => {
+    vscode.window
+      .showInputBox({
+        prompt: 'Assign Value to this Bookmark'
+      })
+      .then((assignedValue) => {
+        toggle(assignedValue);
+      });
+  };
+
+  vscode.commands.registerCommand(
+    'xbookmarks.toggleAndAssignValue',
+    toggleAndAssignValue
+  );
+
+  const revealPosition = (line: number, column: number) => {
+    if (!vscode.window.activeTextEditor) {
+      return;
+    }
+
+    const targetRevealSelection = new vscode.Selection(
+      line,
+      column,
+      line,
+      column
+    );
+
+    vscode.window.activeTextEditor.selection = targetRevealSelection;
+    vscode.window.activeTextEditor.revealRange(
+      targetRevealSelection,
+      vscode.TextEditorRevealType.InCenter
+    );
+  };
+
+  const list = () => {
+    const books = bookmarks[activeFile].map((position: any) => position.value);
+
+    vscode.window.showQuickPick(books).then((selected: string | undefined) => {
+      if (!selected) {
+        return;
+      }
+
+      const bookmarkIndex = findIndexOfBookmarkByValue(selected);
+      const bookmark = bookmarks[activeFile][bookmarkIndex];
+      revealPosition(bookmark.line, bookmark.column);
+    });
+  };
+
+  vscode.commands.registerCommand('xbookmarks.list', list);
 };
 
 // this method is called when your extension is deactivated

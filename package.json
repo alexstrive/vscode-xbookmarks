@@ -18,12 +18,24 @@
       {
         "command": "xbookmarks.toggle",
         "title": "xBookmarks: Toggle"
+      },
+      {
+        "command": "xbookmarks.toggleAndAssignValue",
+        "title": "xBookmarks: Toggle and Assign Value"
+      },
+      {
+        "command": "xbookmarks.list",
+        "title": "xBookmarks: List"
       }
     ],
     "keybindings": [
       {
         "command": "xbookmarks.toggle",
         "key": "Alt+K"
+      },
+      {
+        "command": "xbookmarks.toggleAndAssignValue",
+        "key": "Alt+Shift+K"
       }
     ]
   },
