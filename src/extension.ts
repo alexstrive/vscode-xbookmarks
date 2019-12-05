@@ -1,10 +1,21 @@
 import fs = require('fs');
 import path = require('path');
+import mkdirp = require('mkdirp');
 import * as vscode from 'vscode';
 
 export const activate = (context: vscode.ExtensionContext) => {
-  let bookmarkedLines: any = {};
+  const bookmarkedLines: any = context.workspaceState.get('bookmarks') || {};
   let activeFile: string = '';
+
+  const decorationOptions: vscode.DecorationRenderOptions = {
+    gutterIconPath: context.asAbsolutePath('images/bookmark.svg'),
+    overviewRulerLane: vscode.OverviewRulerLane.Full,
+    overviewRulerColor: 'rgba(21, 126, 251, 0.7)'
+  };
+
+  const bookmarkDecorationType = vscode.window.createTextEditorDecorationType(
+    decorationOptions
+  );
 
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (!editor) {
@@ -12,9 +23,29 @@ export const activate = (context: vscode.ExtensionContext) => {
     }
 
     activeFile = editor.document.uri.fsPath;
+    updateDecorations();
   });
 
-  const updateDecoration = () => {};
+  const updateDecorations = () => {
+    if (!vscode.window.activeTextEditor) {
+      return;
+    }
+
+    if (!activeFile) {
+      return;
+    }
+
+    const books: vscode.Range[] = [];
+
+    for (let line of bookmarkedLines[activeFile]) {
+      books.push(new vscode.Range(line, 0, line, 0));
+    }
+
+    vscode.window.activeTextEditor.setDecorations(
+      bookmarkDecorationType,
+      books
+    );
+  };
 
   const toggle = () => {
     if (!vscode.window.activeTextEditor) {
@@ -37,16 +68,17 @@ export const activate = (context: vscode.ExtensionContext) => {
       toggledPosition.line
     );
 
-    // Delete line if it exists in store
+    // If already exists
     if (lineIndexInStore !== -1) {
+      // Delete from the store
       bookmarkedLines[activeFile].splice(lineIndexInStore, 1);
-      return;
+    } else {
+      // Add to the store
+      bookmarkedLines[activeFile].push(toggledPosition.line);
     }
 
-    // Add line in store
-    bookmarkedLines[activeFile].push(toggledPosition.line);
-
-    console.log(bookmarkedLines);
+    updateDecorations();
+    context.workspaceState.update('bookmarks', bookmarkedLines);
   };
 
   vscode.commands.registerCommand('xbookmarks.toggle', toggle);
