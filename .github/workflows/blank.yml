@@ -13,13 +13,13 @@ jobs:
       - run: |
           yarn
           yarn compile
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - run: |
-          yarn
-          yarn pretest
-          yarn test
+#   test:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@master
+#       - run: |
+#           yarn
+#           yarn pretest
+#           yarn test
       
         
