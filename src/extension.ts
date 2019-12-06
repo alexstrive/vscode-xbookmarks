@@ -1,6 +1,5 @@
 import fs = require('fs');
 import path = require('path');
-import mkdirp = require('mkdirp');
 import * as vscode from 'vscode';
 
 export const activate = (context: vscode.ExtensionContext) => {
